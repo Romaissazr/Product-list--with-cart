@@ -1,0 +1,128 @@
+let cartItems = [];
+
+// Function to add items to the cart
+function addToCart(name, price, 
+
+) {
+    let addCart = event.currentTarget;
+    addCart.style.display = "none"; // Hide the add to cart button
+
+    let card = addCart.closest('#card'); // Get the current dessert card
+    card.classList.add("two");
+
+    let countCart = card.querySelector('#countCart');
+    countCart.style.display = "flex"; // Show the quantity controls
+
+    let quantityElement = card.querySelector('#score');
+    let quantity = parseInt(quantityElement.textContent); // Get current quantity
+
+    let existingItem = cartItems.find(function(item) {
+        return item.name === name;
+    });
+
+    if (existingItem) {
+        existingItem.quantity += quantity; // Update quantity if item already in cart
+    } else {
+        // Create the dessert object with the current quantity
+        let dessert = {
+            name: name,
+            price: price,
+            quantity: quantity // Get the quantity from the span
+        };
+        cartItems.push(dessert); // Add item to cart if not already present
+    }
+
+    updateCartDisplay();
+}
+
+// Function to update cart display
+function updateCartDisplay() {
+    let cartContainer = document.getElementById('cart');
+    let countElement = document.getElementById('count');
+    let imgElement = document.getElementById('img');
+
+    // Clear previous orders
+    let ordersContainer = cartContainer.querySelector('.orders') || document.createElement('div');
+    ordersContainer.classList.add('orders');
+    ordersContainer.innerHTML = '';
+
+    let totalAmount = 0;
+
+    cartItems.forEach(function(item) {
+        totalAmount += item.price * item.quantity; // Calculate total amount
+
+        let orderElement = document.createElement('div');
+        orderElement.innerHTML = `
+            <h5>${item.name}</h5>
+            <div class="txt">
+                <p><span>${item.quantity}x</span> <span>@$${item.price.toFixed(2)}</span><span> @$${(item.price * item.quantity).toFixed(2)}</span></p>
+                <img src="assets/images/icon-remove-item.svg" alt="" onclick="removeFromCart('${item.name}')">
+            </div>
+            <hr>
+        `;
+        ordersContainer.appendChild(orderElement);
+    });
+
+    countElement.textContent = cartItems.length; // Update item count
+    imgElement.style.display = cartItems.length ? 'none' : 'block'; // Hide image if cart has items
+
+    let totalElement = document.createElement('div');
+    totalElement.classList.add('txt', 'last');
+    totalElement.innerHTML = `
+        <p>Order Total</p>
+        <h2>$${totalAmount.toFixed(2)}</h2>
+    `;
+    ordersContainer.appendChild(totalElement);
+    cartContainer.appendChild(ordersContainer);
+}
+
+// Function to remove item from the cart
+function removeFromCart(name) {
+    cartItems = cartItems.filter(function(item) {
+        return item.name !== name; // Remove item from cart
+    });
+    updateCartDisplay();
+}
+
+// Function to increment quantity
+function increment(event) {
+    let countElement = event.currentTarget.closest('#countCart').querySelector('#score');
+    let count = parseInt(countElement.textContent);
+    count++;
+    countElement.textContent = count;
+
+    let card = event.currentTarget.closest('#card');
+    let name = card.querySelector('span').textContent; // Get the dessert name
+    updateCartQuantity(name, count); // Update quantity in cart
+}
+
+// Function to decrement quantity
+function decrement(event) {
+    let countElement = event.currentTarget.closest('#countCart').querySelector('#score');
+    let count = parseInt(countElement.textContent);
+    if (count > 1) { // Ensure quantity does not go below 1
+        count--;
+        countElement.textContent = count;
+
+        let card = event.currentTarget.closest('#card');
+        let name = card.querySelector('span').textContent; // Get the dessert name
+        updateCartQuantity(name, count); // Update quantity in cart
+    }
+}
+
+// Function to update quantity in the cart
+function updateCartQuantity(name, newQuantity) {
+    let existingItem = cartItems.find(function(item) {
+        return item.name === name;
+    });
+
+    if (existingItem) {
+        existingItem.quantity = newQuantity; // Update quantity if item exists in cart
+    }
+
+    // Update the cart display after changing the quantity
+    updateCartDisplay(); 
+
+    // Debugging log to check updated quantity
+    console.log('Updated cart quantity for:', name, 'New Quantity:', newQuantity);
+}
